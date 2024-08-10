@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 namespace EmployeeContract.Models
 {
-    public class DetailEmployee
+    public class DetailEmployeeModel
     {
         [Key]
         public int DetailEmployeeId { get; set; }

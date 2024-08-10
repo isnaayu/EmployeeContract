@@ -16,6 +16,6 @@ namespace EmployeeContract.Models
 
         public required DateTime StartDate { get; set; }
 
-        public ICollection<DetailEmployee> DetailEmployees { get; set; }
+        public ICollection<DetailEmployeeModel> DetailEmployees { get; set; }
     }
 }
