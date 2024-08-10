@@ -1,4 +1,5 @@
 using EmployeeContract.Repository;
+using EmployeeContract.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +13,12 @@ builder.Services.AddEndpointsApiExplorer();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationsDBContext>(options => options.UseSqlServer(connectionString));
 
+builder.Services.AddScoped<IBranchService, BranchService>();
+builder.Services.AddScoped<IPositionsService, PositionsService>();
+builder.Services.AddScoped<IDetailEmployeeService, DetailEmployeeService>();
 
 builder.Services.AddSwaggerGen();
+builder.Services.AddLogging();
 
 var app = builder.Build();
 

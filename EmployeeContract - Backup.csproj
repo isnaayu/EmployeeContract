@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EPPlus" Version="7.2.2" />
+    <PackageReference Include="EPPlus" Version="5.7.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -29,6 +29,7 @@
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Migrations\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>
