@@ -1,16 +1,18 @@
-﻿using EmployeeContract.DTO.Request;
+﻿using Dapper;
+using EmployeeContract.DTO.Request;
 using EmployeeContract.DTO.Response;
 using EmployeeContract.Models;
 using EmployeeContract.Repository;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Data;
 
 namespace EmployeeContract.Services
 {
     public interface IDetailEmployeeService
     {
         Task ImportDetailEmployeesAsync(IFormFile file, string subjectName);
-        Task<List<DetailEmployeeResponse>> GetAllDetailEmployee();
+        Task<List<DetailEmployeeResponse>> GetAllDetailEmployee(int? daysUntilContractEnds);
         Task<DetailEmployeeResponse> UpdateDetailsEmployee(DetailEmployeeRequest detailEmployeeRequest);
         Task<CommonResponse<object>> DeleteDetailEmployeeAndEmployeeAsync(int detailEmployeeId);
     }
@@ -135,9 +137,25 @@ namespace EmployeeContract.Services
             }
         }
 
-        public async Task<List<DetailEmployeeResponse>> GetAllDetailEmployee()
+        public async Task<List<DetailEmployeeResponse>> GetAllDetailEmployee(int? daysUntilContractEnds)
         {
-            return await _applicationsDBContext.GetAllEmployeesWithDetailsAsync();
+            using var connection = _applicationsDBContext.Database.GetDbConnection();
+
+            if (connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+            }
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@DaysUntilContractEnds", daysUntilContractEnds, DbType.Int32, ParameterDirection.Input);
+
+            var result = await connection.QueryAsync<DetailEmployeeResponse>(
+                "GetAllEmployeesWithDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
         }
 
         public async Task<DetailEmployeeResponse> UpdateDetailsEmployee(DetailEmployeeRequest updateRequest)

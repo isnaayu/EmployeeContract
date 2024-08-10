@@ -39,10 +39,32 @@ namespace EmployeeContract.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllDetailEmployees()
+        public async Task<IActionResult> GetAllDetailEmployees([FromQuery] int? daysUntilContractEnds)
         {
-            var employeeDetails = await _detailEmployeeService.GetAllDetailEmployee();
-            return Ok(employeeDetails);
+            try
+            {
+                var employeeDetails = await _detailEmployeeService.GetAllDetailEmployee(daysUntilContractEnds);
+
+                var response = new CommonResponse<List<DetailEmployeeResponse>>
+                {
+                    StatusCode = 200,
+                    Message = "Employees retrieved successfully",
+                    Data = employeeDetails
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new CommonResponse<List<DetailEmployeeResponse>>
+                {
+                    StatusCode = 500,
+                    Message = "Error retrieving employees: " + ex.Message,
+                    Data = null
+                };
+
+                return StatusCode(response.StatusCode, response);
+            }
         }
 
         [HttpPut]

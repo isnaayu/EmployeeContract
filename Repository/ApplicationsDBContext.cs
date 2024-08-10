@@ -38,22 +38,5 @@ namespace EmployeeContract.Repository
         }
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 
-        public async Task<List<DetailEmployeeResponse>> GetAllEmployeesWithDetailsAsync()
-        {
-            using var connection = Database.GetDbConnection();
-
-            if (connection.State != ConnectionState.Open)
-            {
-                await connection.OpenAsync();
-            }
-
-            var result = await connection.QueryAsync<DetailEmployeeResponse>(
-                "GetAllEmployeesWithDetails",
-                commandType: CommandType.StoredProcedure
-            );
-
-
-            return result.ToList();
-        }
     }
 }
