@@ -11,7 +11,8 @@ namespace EmployeeContract.Services
 {
     public interface IDetailEmployeeService
     {
-        Task ImportDetailEmployeesAsync(IFormFile file, string subjectName);
+        Task<List<DetailEmployeeResponse>> ImportDetailEmployeesAsync(IFormFile file, string subjectName);
+        Task<DetailEmployeeResponse> GetDetailEmployeeById(int id);
         Task<List<DetailEmployeeResponse>> GetAllDetailEmployee(int? daysUntilContractEnds);
         Task<DetailEmployeeResponse> UpdateDetailsEmployee(DetailEmployeeRequest detailEmployeeRequest);
         Task<CommonResponse<object>> DeleteDetailEmployeeAndEmployeeAsync(int detailEmployeeId);
@@ -28,7 +29,7 @@ namespace EmployeeContract.Services
             _logger = logger;
         }
 
-        public async Task ImportDetailEmployeesAsync(IFormFile file, string subjectName)
+        public async Task<List<DetailEmployeeResponse>> ImportDetailEmployeesAsync(IFormFile file, string subjectName)
         {
             var fileName = file.FileName;
             using var stream = file.OpenReadStream();
@@ -128,6 +129,25 @@ namespace EmployeeContract.Services
 
                 await transaction.CommitAsync();
                 _logger.LogInformation("Transaction committed successfully");
+
+                var responseList = detailEmployees.Select(de => new DetailEmployeeResponse
+                {
+                    DetailEmployeeId = de.DetailEmployeeId,
+                    EmployeeId = de.EmployeeId,
+                    BranchId = de.BranchId,
+                    PositionId = de.PositionId,
+                    EmployeeName = de.Employee.EmployeeName,
+                    BirthDate = de.Employee.BirthDate,
+                    ContractPeriod = de.Employee.ContractPeriod,
+                    StartDate = de.Employee.StartDate,
+                    ContractEnd = de.ContractEnd,
+                    PositionName = _applicationsDBContext.Positions.Find(de.PositionId)?.PositionName ?? "Unknown Position",
+                    PositionCode = _applicationsDBContext.Positions.Find(de.PositionId)?.PositionCode ?? "Unknown Position Code",
+                    BranchName = _applicationsDBContext.Branches.Find(de.BranchId)?.BranchName ?? "Unknown Branch",
+                    BranchCode = _applicationsDBContext.Branches.Find(de.BranchId)?.BranchCode ?? "Unknown BranchCode"
+                }).ToList();
+
+                return responseList;
             }
             catch (Exception ex)
             {
@@ -166,6 +186,7 @@ namespace EmployeeContract.Services
             {
                 var employee = await _applicationsDBContext.Employees
                     .FirstOrDefaultAsync(e => e.EmployeeId == updateRequest.EmployeeId);
+                
 
                 if (employee == null)
                 {
@@ -208,7 +229,9 @@ namespace EmployeeContract.Services
                     DetailEmployeeId = detailEmployee.DetailEmployeeId,
                     PositionId = detailEmployee.PositionId,
                     BranchId = detailEmployee.BranchId,
-                    PositionName = detailEmployee.Position?.PositionName ?? "Unknown Position", 
+                    PositionName = detailEmployee.Position?.PositionName ?? "Unknown Position",
+                    PositionCode = detailEmployee.Position?.PositionCode ?? "Unknown Position Code",
+                    BranchCode = detailEmployee.Branch?.BranchCode ?? "Unknown Branch Code",
                     BranchName = detailEmployee.Branch?.BranchName ?? "Unknown Branch",
                     ContractEnd = detailEmployee.ContractEnd
                 };
@@ -279,6 +302,30 @@ namespace EmployeeContract.Services
                     Data = null
                 };
             }
+
+            
+        }
+
+        public async Task<DetailEmployeeResponse> GetDetailEmployeeById(int id)
+        {
+
+            using var connection = _applicationsDBContext.Database.GetDbConnection();
+
+            if (connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+            }
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@DetailEmployeeId", id, DbType.Int32, ParameterDirection.Input);
+
+            var result = await connection.QuerySingleOrDefaultAsync<DetailEmployeeResponse>(
+                "GetDetailEmployeeById",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
         }
 
 

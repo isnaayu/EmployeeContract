@@ -28,13 +28,27 @@ namespace EmployeeContract.Controllers
 
             try
             {
-                await _detailEmployeeService.ImportDetailEmployeesAsync(file, subjectName);
-                return Ok("Data imported successfully");
+                var datas = await _detailEmployeeService.ImportDetailEmployeesAsync(file, subjectName);
+
+                var response = new CommonResponse<List<DetailEmployeeResponse>>
+                {
+                    StatusCode = 200,
+                    Message = "Employees successfully created",
+                    Data = datas
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while importing data");
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                var response = new CommonResponse<List<DetailEmployeeResponse>>
+                {
+                    StatusCode = 500,
+                    Message = "Error Import employees: " + ex.Message,
+                    Data = null
+                };
+
+                return StatusCode(response.StatusCode, response);
             }
         }
 
@@ -106,6 +120,31 @@ namespace EmployeeContract.Controllers
             }
             return StatusCode(response.StatusCode, response);
         }
+
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetDetailEmployeeById(int id)
+        {
+            var result = await _detailEmployeeService.GetDetailEmployeeById(id);
+
+            if (result == null)
+            {
+                return NotFound(new CommonResponse<DetailEmployeeResponse>
+                {
+                    StatusCode = 404,
+                    Message = "Detail employee not found",
+                    Data = null
+                });
+            }
+
+            return Ok(new CommonResponse<DetailEmployeeResponse>
+            {
+                StatusCode = 200,
+                Message = "Success",
+                Data = result
+            });
+        }
+
 
 
 

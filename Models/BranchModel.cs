@@ -13,6 +13,10 @@ namespace EmployeeContract.Models
         [MaxLength(100)]
         public required string BranchName { get; set; }
 
+        public bool IsActive { get; set; }
+
         public ICollection<DetailEmployeeModel> DetailEmployees { get; set; }
+
+        
     }
 }

@@ -16,9 +16,21 @@ builder.Services.AddDbContext<ApplicationsDBContext>(options => options.UseSqlSe
 builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IPositionsService, PositionsService>();
 builder.Services.AddScoped<IDetailEmployeeService, DetailEmployeeService>();
+builder.Services.AddScoped<IFileListsService, FileListsService>();
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddLogging();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:5173")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
 
 var app = builder.Build();
 
@@ -30,6 +42,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowSpecificOrigins");
 
 app.UseAuthorization();
 

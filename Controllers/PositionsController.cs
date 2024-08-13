@@ -1,4 +1,5 @@
-﻿using EmployeeContract.Services;
+﻿using EmployeeContract.DTO.Response;
+using EmployeeContract.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeContract.Controllers
@@ -31,6 +32,53 @@ namespace EmployeeContract.Controllers
             return Ok("Data imported successfully");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> getAllBranches()
+        {
+            try
+            {
+                List<PositionResponse> datas = await _positionsService.getAllPositions();
+
+                var response = new CommonResponse<List<PositionResponse>>
+                {
+                    StatusCode = 200,
+                    Message = "successfully Fetching Positions",
+                    Data = datas
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new CommonResponse<string>
+                {
+                    StatusCode = 500,
+                    Message = $"Error fetching positions: {ex.Message}",
+                    Data = null
+                };
+
+                return StatusCode(response.StatusCode, response);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePositionById(int id)
+        {
+            try
+            {
+                var response = await _positionsService.deletePositionById(id);
+                if (response == null)
+                {
+                    return NotFound($"Position with id {id} not found.");
+                }
+
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e.Message}");
+            }
+        }
 
     }
 }

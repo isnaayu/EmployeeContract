@@ -1,5 +1,7 @@
-﻿using EmployeeContract.Services;
+﻿using EmployeeContract.DTO.Response;
+using EmployeeContract.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace EmployeeContract.Controllers
 {
@@ -19,16 +21,96 @@ namespace EmployeeContract.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("File is not selected or is empty.");
+                return BadRequest(new CommonResponse<string>
+                {
+                    StatusCode = 400,
+                    Message = "File is not selected or is empty.",
+                    Data = null
+                });
             }
 
-            using (var stream = new MemoryStream())
+            try
             {
-                await file.CopyToAsync(stream);
-                await _branchService.ImportBranchesAsync(stream);
+                List<BranchResponse> datas;
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    datas = await _branchService.ImportBranchesAsync(stream);
+                }
+
+                var response = new CommonResponse<List<BranchResponse>>
+                {
+                    StatusCode = 200,
+                    Message = "Branch successfully created",
+                    Data = datas
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new CommonResponse<string>
+                {
+                    StatusCode = 500,
+                    Message = $"Error importing branch: {ex.Message}",
+                    Data = null
+                };
+
+                return StatusCode(response.StatusCode, response);
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> getAllBranches()
+        {
+            try
+            {
+                List<BranchResponse> datas = await _branchService.getAllBranches();
+
+                var response = new CommonResponse<List<BranchResponse>>
+                {
+                    StatusCode = 200,
+                    Message = "successfully Fetching Branch",
+                    Data = datas
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new CommonResponse<string>
+                {
+                    StatusCode = 500,
+                    Message = $"Error fetching branch: {ex.Message}",
+                    Data = null
+                };
+
+                return StatusCode(response.StatusCode, response);
             }
 
-            return Ok("Data imported successfully");
+
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBranchById(int id)
+        {
+
+            try
+            {
+                var response = await _branchService.deleteBranchById(id);
+                if (response == null)
+                {
+                    return NotFound($"Branch with id {id} not found.");
+                }
+
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e.Message}");
+            }
         }
     }
+
+        
 }
